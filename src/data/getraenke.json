@@ -7,7 +7,7 @@
     "zubereitung_sekunden": 45,
     "koffein": "hoch",
     "kategorie": "espresso",
-    "bild": "espresso.jpg",
+    "bild": "/images/espresso.jpg",
     "verfuegbar": true
   },
   {
@@ -18,7 +18,7 @@
     "zubereitung_sekunden": 90,
     "koffein": "mittel",
     "kategorie": "milchgetraenk",
-    "bild": "cappuccino.jpg",
+    "bild": "/images/cappuccino.jpg",
     "verfuegbar": true
   },
   {
@@ -29,7 +29,7 @@
     "zubereitung_sekunden": 100,
     "koffein": "niedrig",
     "kategorie": "milchgetraenk",
-    "bild": "latte-macchiato.jpg",
+    "bild": "/images/latte-macchiato.jpg",
     "verfuegbar": true
   },
   {
@@ -40,7 +40,7 @@
     "zubereitung_sekunden": 95,
     "koffein": "hoch",
     "kategorie": "milchgetraenk",
-    "bild": "flat-white.jpg",
+    "bild": "/images/flat-white.jpg",
     "verfuegbar": true
   },
   {
@@ -51,7 +51,7 @@
     "zubereitung_sekunden": 60,
     "koffein": "mittel",
     "kategorie": "espresso",
-    "bild": "americano.jpg",
+    "bild": "/images/americano.jpg",
     "verfuegbar": true
   },
   {
@@ -62,7 +62,7 @@
     "zubereitung_sekunden": 110,
     "koffein": "mittel",
     "kategorie": "milchgetraenk",
-    "bild": "mocha.jpg",
+    "bild": "/images/mocha.jpg",
     "verfuegbar": true
   },
   {
@@ -73,7 +73,7 @@
     "zubereitung_sekunden": 90,
     "koffein": "keins",
     "kategorie": "sonstiges",
-    "bild": "heisse-schokolade.jpg",
+    "bild": "/images/heisse-schokolade.jpg",
     "verfuegbar": true
   },
   {
@@ -84,7 +84,7 @@
     "zubereitung_sekunden": 50,
     "koffein": "niedrig",
     "kategorie": "sonstiges",
-    "bild": "gruener-tee.jpg",
+    "bild": "/images/gruener-tee.jpg",
     "verfuegbar": true
   }
 ]
