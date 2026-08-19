@@ -19,6 +19,11 @@
  */
 
 @theme inline {
+  --color-haw-primary: var(--haw-primary);
+  --color-haw-accent: var(--haw-accent);
+  --color-haw-soft: var(--haw-soft);
+  --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Martel", Georgia, serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -63,6 +68,9 @@
 
 :root {
   --radius: 0.625rem;
+  --haw-primary: oklch(0.396 0.135 264.5);
+  --haw-accent: oklch(0.647 0.132 235.5);
+  --haw-soft: oklch(0.793 0.056 247);
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
@@ -140,5 +148,22 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    text-align: left;
   }
+}
+
+@utility ueberschrift {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--haw-primary);
+}
+
+@utility titel-display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  color: var(--haw-primary);
 }
