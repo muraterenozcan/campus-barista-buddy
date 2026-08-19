@@ -9,8 +9,7 @@ Eine mobile-first Web-App für die HAW Hamburg: Nutzerin beschreibt ihre Situati
 3. Dezente Wetterzeile: Ort, Temperatur, Uhrzeit – feste Beispielwerte, passend zum gewählten Standort
 4. Eingabebereich "WIE GEHT'S DIR GERADE?"
    - Mehrzeiliges Textfeld mit Platzhalter "Zum Beispiel: müde, hatte drei Vorlesungen hintereinander"
-   - Button "Sprechen" (Mikrofon-Icon, ohne Funktion, sichtbar deaktiviert wirkend aber anklickbar-neutral)
-   - Button "Gesichtsausdruck" (Kamera-Icon, ohne Funktion)
+   - Button "Sprechen" (Mikrofon-Icon) und Button "Gesichtsausdruck" (Kamera-Icon): normal aussehend und klickbar, zeigen beim Klick nur den Hinweis "Kommt gleich" (Toast). Layout ist so gebaut, dass die spätere echte Funktion nichts am Layout ändert.
    - Drei Stimmungs-Buttons nebeneinander: Müde, Gestresst, Gut drauf (auswählbar, aktiv in #144E9B)
 5. Hauptbutton "Vorschlag holen", volle Breite, deaktiviert solange kein Text und keine Stimmung gewählt ist
 6. Ergebnisbereich (erst nach Klick sichtbar)
@@ -19,8 +18,8 @@ Eine mobile-first Web-App für die HAW Hamburg: Nutzerin beschreibt ihre Situati
 
 - Quadratisches, abgerundetes Getränkebild
 - Getränkename groß in Martel Heavy
-- Begründung in zwei Sätzen (aus Beschreibung + gewählter Stimmung zusammengesetzt)
-- Dezente Zeile: "Verfügbar ab 15:36 – die Maschine ist bis dahin belegt."
+- Begründung in zwei Sätzen, geliefert von einer einzigen Funktion `erstelleBegruendung()`, die später komplett durch eine KI-Antwort ersetzt werden kann – kein Textbau in der Komponente
+- Dezente Zeile "Verfügbar ab HH:MM – die Maschine ist bis dahin belegt.", berechnet aus aktueller Uhrzeit + `zubereitung_sekunden`, aufgerundet auf den nächsten 3-Minuten-Takt (vorerst ohne Belegungsprüfung)
 - Kleiner Button "Anderen Vorschlag"
 
 ## Zustände
@@ -49,5 +48,5 @@ Klick auf "Vorschlag holen" → kurze simulierte Wartezeit (Ladezustand) → zuf
 - Bilder werden aus `public/images/` erwartet; fehlt ein Bild, zeigt die Karte eine dezente Platzhalterfläche in #9DC0DF
 - `src/routes/index.tsx` wird zur Startseite umgebaut (Placeholder entfernt), mit eigenem `head()` (Titel, Beschreibung, og/twitter auf Deutsch)
 - Komponenten unter `src/components/campus-barista/`: `Kopfbereich`, `StandortWahl`, `Wetterzeile`, `StimmungsEingabe`, `ErgebnisKarte`, `ErgebnisSkeleton`, `FehlerHinweis`
-- Zustandslogik lokal in der Route (`useState`), Vorschlagsauswahl in `src/lib/vorschlag.ts`
+- Zustandslogik lokal in der Route (`useState`); `src/lib/vorschlag.ts` enthält die Zufallsauswahl, `erstelleBegruendung(getraenk, stimmung, text)` als einzigen Begründungs-Erzeuger (späterer KI-Austauschpunkt) und `verfuegbarAb(zubereitungSekunden, jetzt)` mit 3-Minuten-Aufrundung
 - Kein Backend nötig
