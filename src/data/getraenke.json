@@ -1,0 +1,68 @@
+[
+  {
+    "id": "espresso",
+    "name": "Espresso",
+    "beschreibung": "Kurz, kräftig und schnell serviert",
+    "preis_cent": 120,
+    "zubereitung_sekunden": 45,
+    "koffein": "hoch",
+    "kategorie": "kaffee",
+    "bild": "/images/espresso.jpg",
+    "verfuegbar": true
+  },
+  {
+    "id": "cappuccino",
+    "name": "Cappuccino",
+    "beschreibung": "Milder Kaffee mit cremigem Milchschaum",
+    "preis_cent": 190,
+    "zubereitung_sekunden": 120,
+    "koffein": "mittel",
+    "kategorie": "kaffee",
+    "bild": "/images/cappuccino.jpg",
+    "verfuegbar": true
+  },
+  {
+    "id": "flat-white",
+    "name": "Flat White",
+    "beschreibung": "Samtige Milch mit doppeltem Espresso",
+    "preis_cent": 240,
+    "zubereitung_sekunden": 150,
+    "koffein": "hoch",
+    "kategorie": "kaffee",
+    "bild": "/images/flat-white.jpg",
+    "verfuegbar": true
+  },
+  {
+    "id": "gruener-tee",
+    "name": "Grüner Tee",
+    "beschreibung": "Leicht, klar und wohltuend warm",
+    "preis_cent": 150,
+    "zubereitung_sekunden": 180,
+    "koffein": "niedrig",
+    "kategorie": "tee",
+    "bild": "/images/gruener-tee.jpg",
+    "verfuegbar": true
+  },
+  {
+    "id": "kakao",
+    "name": "Heiße Schokolade",
+    "beschreibung": "Süß, warm und tröstlich",
+    "preis_cent": 210,
+    "zubereitung_sekunden": 160,
+    "koffein": "keins",
+    "kategorie": "warm",
+    "bild": "/images/kakao.jpg",
+    "verfuegbar": true
+  },
+  {
+    "id": "eiskaffee",
+    "name": "Eiskaffee",
+    "beschreibung": "Kalt, wach machend und erfrischend",
+    "preis_cent": 260,
+    "zubereitung_sekunden": 200,
+    "koffein": "mittel",
+    "kategorie": "kalt",
+    "bild": "/images/eiskaffee.jpg",
+    "verfuegbar": false
+  }
+]
