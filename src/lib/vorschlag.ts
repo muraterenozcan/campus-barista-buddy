@@ -12,7 +12,7 @@ export type Getraenk = {
   verfuegbar: boolean;
 };
 
-export type Stimmung = "muede" | "gestresst" | "gut-drauf";
+export type Stimmung = "muede" | "gestresst" | "gut-drauf" | "neutral";
 
 export const getraenke = getraenkeDaten as Getraenk[];
 
@@ -23,9 +23,7 @@ export function waehleGetraenk(ausser?: string): Getraenk {
     throw new Error("Kein Getränk verfügbar");
   }
   const auswahl =
-    verfuegbare.length > 1 && ausser
-      ? verfuegbare.filter((g) => g.id !== ausser)
-      : verfuegbare;
+    verfuegbare.length > 1 && ausser ? verfuegbare.filter((g) => g.id !== ausser) : verfuegbare;
   return auswahl[Math.floor(Math.random() * auswahl.length)]!;
 }
 
@@ -33,6 +31,7 @@ const stimmungsSatz: Record<Stimmung, string> = {
   muede: "Du klingst müde, deshalb darf es jetzt etwas wach machen.",
   gestresst: "Du klingst gestresst, deshalb passt jetzt etwas Beruhigendes.",
   "gut-drauf": "Du bist gut drauf, das halten wir mit etwas Feinem.",
+  neutral: "Deine Stimmung ist gerade ausgeglichen, dazu passt etwas Ausgewogenes.",
 };
 
 /**
@@ -61,10 +60,7 @@ export function erstelleBegruendung(
  * Aktuelle Uhrzeit plus Zubereitungszeit, aufgerundet auf den nächsten
  * 3-Minuten-Takt. Noch ohne Belegungsprüfung der Maschine.
  */
-export function verfuegbarAb(
-  zubereitungSekunden: number,
-  jetzt: Date = new Date(),
-): string {
+export function verfuegbarAb(zubereitungSekunden: number, jetzt: Date = new Date()): string {
   const ziel = new Date(jetzt.getTime() + zubereitungSekunden * 1000);
   ziel.setSeconds(0, 0);
   const takt = 3;

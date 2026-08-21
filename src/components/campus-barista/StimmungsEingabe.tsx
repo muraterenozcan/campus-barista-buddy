@@ -1,8 +1,17 @@
-import { Camera, Mic } from "lucide-react";
-import { toast } from "sonner";
+import { Camera, Loader2, Mic, X } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useGesichtsausdruck } from "@/hooks/use-gesichtsausdruck";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { cn } from "@/lib/utils";
 import type { Stimmung } from "@/lib/vorschlag";
@@ -12,6 +21,13 @@ const stimmungen: { id: Stimmung; label: string }[] = [
   { id: "gestresst", label: "Gestresst" },
   { id: "gut-drauf", label: "Gut drauf" },
 ];
+
+const stimmungsLabels: Record<Stimmung, string> = {
+  muede: "Müde",
+  gestresst: "Gestresst",
+  "gut-drauf": "Gut drauf",
+  neutral: "Neutral",
+};
 
 export function StimmungsEingabe({
   text,
@@ -24,17 +40,35 @@ export function StimmungsEingabe({
   stimmung: Stimmung | null;
   onStimmungChange: (wert: Stimmung | null) => void;
 }) {
-  const kommtGleich = () => toast("Kommt gleich");
   const {
     unterstuetzt: mikrofonUnterstuetzt,
     hoertZu,
     start: startHoeren,
     stop: stopHoeren,
   } = useSpeechRecognition(onTextChange);
+  const { dialogOffen, wertetAus, oeffneDialog, schliesseDialog, kameraErlauben } =
+    useGesichtsausdruck(onStimmungChange);
 
   return (
     <section className="mt-8">
       <h2 className="ueberschrift text-sm">Wie geht&apos;s dir gerade?</h2>
+
+      {stimmung && (
+        <Badge
+          variant="secondary"
+          className="mt-3 gap-1 border-haw-soft bg-haw-soft/30 text-haw-primary"
+        >
+          {stimmungsLabels[stimmung]}
+          <button
+            type="button"
+            onClick={() => onStimmungChange(null)}
+            aria-label="Stimmung entfernen"
+            className="cursor-pointer rounded-full hover:text-destructive"
+          >
+            <X className="size-3" />
+          </button>
+        </Badge>
+      )}
 
       <Textarea
         value={text}
@@ -68,13 +102,39 @@ export function StimmungsEingabe({
         <Button
           type="button"
           variant="outline"
-          onClick={kommtGleich}
+          disabled={wertetAus}
+          onClick={oeffneDialog}
           className="h-11 border-haw-soft text-haw-primary hover:bg-haw-soft/20"
         >
-          <Camera className="size-4" />
-          Gesichtsausdruck
+          {wertetAus ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
+          {wertetAus ? "Wird ausgewertet …" : "Gesichtsausdruck"}
         </Button>
       </div>
+
+      <Dialog open={dialogOffen} onOpenChange={(offen) => !offen && schliesseDialog()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gesichtsausdruck auswerten?</DialogTitle>
+            <DialogDescription>
+              Das Bild wird ausschließlich auf deinem Gerät ausgewertet. Es wird nicht gespeichert
+              und nicht übertragen. Ausgewertet wird nur der Gesichtsausdruck, es findet keine
+              Gesichtserkennung statt.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={schliesseDialog}>
+              Lieber die Buttons nutzen
+            </Button>
+            <Button
+              type="button"
+              onClick={kameraErlauben}
+              className="bg-haw-primary text-primary-foreground hover:bg-haw-primary/90"
+            >
+              Kamera erlauben
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="mt-3 grid grid-cols-3 gap-3">
         {stimmungen.map((s) => {
