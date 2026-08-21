@@ -57,10 +57,23 @@ export function erstelleBegruendung(
 }
 
 /**
- * Aktuelle Uhrzeit plus Zubereitungszeit, aufgerundet auf den nächsten
- * 3-Minuten-Takt. Noch ohne Belegungsprüfung der Maschine.
+ * Belegte Zeitpunkte je Standort, vorerst als einfache Liste im Browser
+ * gehalten (kein Server, kein Persistieren über den Tab hinaus).
  */
-export function verfuegbarAb(zubereitungSekunden: number, jetzt: Date = new Date()): string {
+const belegteZeitpunkte: Record<string, string[]> = {};
+
+/**
+ * Aktuelle Uhrzeit plus Zubereitungszeit, aufgerundet auf den nächsten
+ * 3-Minuten-Takt. Ist der Takt für den Standort bereits belegt, wird der
+ * nächste freie 3-Minuten-Takt genommen.
+ */
+export function verfuegbarAb(
+  zubereitungSekunden: number,
+  standortId: string,
+  jetzt: Date = new Date(),
+): string {
+  const liste = (belegteZeitpunkte[standortId] ??= []);
+
   const ziel = new Date(jetzt.getTime() + zubereitungSekunden * 1000);
   ziel.setSeconds(0, 0);
   const takt = 3;
@@ -68,5 +81,13 @@ export function verfuegbarAb(zubereitungSekunden: number, jetzt: Date = new Date
   if (rest !== 0 || ziel.getTime() <= jetzt.getTime()) {
     ziel.setMinutes(ziel.getMinutes() + (takt - rest));
   }
-  return ziel.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+
+  let zeit = ziel.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  while (liste.includes(zeit)) {
+    ziel.setMinutes(ziel.getMinutes() + takt);
+    zeit = ziel.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  liste.push(zeit);
+  return zeit;
 }

@@ -8,13 +8,10 @@ import {
 
 export type StandortId = "berliner-tor" | "bergedorf" | "tum";
 
-export const standorte: Record<
-  StandortId,
-  { name: string; temperatur: string }
-> = {
-  "berliner-tor": { name: "HAW Berliner Tor", temperatur: "18 °C" },
-  bergedorf: { name: "HAW Bergedorf", temperatur: "17 °C" },
-  tum: { name: "TU München", temperatur: "21 °C" },
+export const standorte: Record<StandortId, { name: string; lat: number; lon: number }> = {
+  "berliner-tor": { name: "HAW Berliner Tor", lat: 53.557, lon: 10.023 },
+  bergedorf: { name: "HAW Bergedorf", lat: 53.489, lon: 10.222 },
+  tum: { name: "TU München", lat: 48.149, lon: 11.568 },
 };
 
 export function StandortWahl({
@@ -30,10 +27,7 @@ export function StandortWahl({
         Standort
       </label>
       <Select value={wert} onValueChange={(v) => onChange(v as StandortId)}>
-        <SelectTrigger
-          id="standort"
-          className="mt-2 h-9 w-full max-w-xs border-haw-soft text-sm"
-        >
+        <SelectTrigger id="standort" className="mt-2 h-9 w-full max-w-xs border-haw-soft text-sm">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

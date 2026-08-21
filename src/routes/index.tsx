@@ -5,14 +5,11 @@ import { ErgebnisKarte } from "@/components/campus-barista/ErgebnisKarte";
 import { ErgebnisSkeleton } from "@/components/campus-barista/ErgebnisSkeleton";
 import { FehlerHinweis } from "@/components/campus-barista/FehlerHinweis";
 import { Kopfbereich } from "@/components/campus-barista/Kopfbereich";
-import {
-  StandortWahl,
-  standorte,
-  type StandortId,
-} from "@/components/campus-barista/StandortWahl";
+import { StandortWahl, standorte, type StandortId } from "@/components/campus-barista/StandortWahl";
 import { StimmungsEingabe } from "@/components/campus-barista/StimmungsEingabe";
 import { Wetterzeile } from "@/components/campus-barista/Wetterzeile";
 import { Button } from "@/components/ui/button";
+import { useWetter } from "@/hooks/use-wetter";
 import {
   erstelleBegruendung,
   verfuegbarAb,
@@ -54,6 +51,7 @@ function Index() {
   const [stimmung, setStimmung] = useState<Stimmung | null>(null);
   const [status, setStatus] = useState<Status>("leer");
   const [vorschlag, setVorschlag] = useState<Vorschlag | null>(null);
+  const { temperatur, laedt: wetterLaedt, fehler: wetterFehler } = useWetter(standort);
 
   const hatEingabe = text.trim().length > 0 || stimmung !== null;
 
@@ -65,7 +63,7 @@ function Index() {
         setVorschlag({
           getraenk,
           begruendung: erstelleBegruendung(getraenk, stimmung, text),
-          verfuegbarAbZeit: verfuegbarAb(getraenk.zubereitung_sekunden),
+          verfuegbarAbZeit: verfuegbarAb(getraenk.zubereitung_sekunden, standort),
         });
         setStatus("fertig");
       } catch {
@@ -81,7 +79,12 @@ function Index() {
     <main className="mx-auto min-h-screen w-full max-w-md bg-background px-5 pb-16">
       <Kopfbereich />
       <StandortWahl wert={standort} onChange={setStandort} />
-      <Wetterzeile ort={ort.name} temperatur={ort.temperatur} />
+      <Wetterzeile
+        ort={ort.name}
+        temperatur={temperatur}
+        laedt={wetterLaedt}
+        fehler={wetterFehler}
+      />
 
       <StimmungsEingabe
         text={text}
@@ -102,8 +105,8 @@ function Index() {
       <section className="mt-8">
         {status === "leer" && (
           <p className="rounded-2xl bg-haw-soft/20 p-4 text-sm text-muted-foreground">
-            Beschreibe kurz, wie du dich fühlst – oder wähle eine Stimmung. Danach
-            bekommst du genau einen Getränkevorschlag.
+            Beschreibe kurz, wie du dich fühlst – oder wähle eine Stimmung. Danach bekommst du genau
+            einen Getränkevorschlag.
           </p>
         )}
         {status === "laden" && <ErgebnisSkeleton />}
