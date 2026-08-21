@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { cn } from "@/lib/utils";
 import type { Stimmung } from "@/lib/vorschlag";
 
@@ -24,6 +25,12 @@ export function StimmungsEingabe({
   onStimmungChange: (wert: Stimmung | null) => void;
 }) {
   const kommtGleich = () => toast("Kommt gleich");
+  const {
+    unterstuetzt: mikrofonUnterstuetzt,
+    hoertZu,
+    start: startHoeren,
+    stop: stopHoeren,
+  } = useSpeechRecognition(onTextChange);
 
   return (
     <section className="mt-8">
@@ -38,15 +45,26 @@ export function StimmungsEingabe({
       />
 
       <div className="mt-3 grid grid-cols-2 gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={kommtGleich}
-          className="h-11 border-haw-soft text-haw-primary hover:bg-haw-soft/20"
-        >
-          <Mic className="size-4" />
-          Sprechen
-        </Button>
+        {mikrofonUnterstuetzt ? (
+          <Button
+            type="button"
+            variant="outline"
+            aria-pressed={hoertZu}
+            onClick={hoertZu ? stopHoeren : startHoeren}
+            style={hoertZu ? { backgroundColor: "#0098D5", borderColor: "#0098D5" } : undefined}
+            className={cn(
+              "h-11 border-haw-soft text-haw-primary hover:bg-haw-soft/20",
+              hoertZu && "animate-pulse text-white hover:text-white",
+            )}
+          >
+            <Mic className="size-4" />
+            {hoertZu ? "Ich höre zu..." : "Sprechen"}
+          </Button>
+        ) : (
+          <p className="flex h-11 items-center justify-center rounded-md border border-dashed border-haw-soft px-2 text-center text-[11px] leading-tight text-muted-foreground">
+            Spracheingabe wird von diesem Browser nicht unterstützt. Bitte Text eingeben.
+          </p>
+        )}
         <Button
           type="button"
           variant="outline"
