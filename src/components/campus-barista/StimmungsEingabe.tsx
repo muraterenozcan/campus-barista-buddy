@@ -74,6 +74,7 @@ export function StimmungsEingabe({
         value={text}
         onChange={(e) => onTextChange(e.target.value)}
         rows={3}
+        maxLength={500}
         className="mt-3 resize-none border-haw-soft text-sm placeholder:text-muted-foreground/70 focus-visible:ring-haw-accent"
         placeholder="Zum Beispiel: müde, hatte drei Vorlesungen hintereinander"
       />

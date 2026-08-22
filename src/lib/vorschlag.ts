@@ -35,9 +35,9 @@ const stimmungsSatz: Record<Stimmung, string> = {
 };
 
 /**
- * Einzige Quelle für die Begründung.
- * Später kann der Inhalt dieser Funktion vollständig durch eine KI-Antwort
- * ersetzt werden – die Komponenten bleiben unverändert.
+ * Regelbasierte Begründung ohne KI. Dient als Rückfallebene für
+ * {@link holeEmpfehlung}, wenn der KI-Endpunkt fehlschlägt, zu lange braucht
+ * oder eine ungültige Antwort liefert.
  */
 export function erstelleBegruendung(
   getraenk: Getraenk,
@@ -54,6 +54,80 @@ export function erstelleBegruendung(
     Math.round(getraenk.zubereitung_sekunden / 60),
   )} Minuten fertig.`;
   return `${ersterSatz} ${zweiterSatz}`;
+}
+
+export type Empfehlung = {
+  getraenk: Getraenk;
+  begruendung: string;
+};
+
+/**
+ * Holt eine KI-gestützte Empfehlung von /api/empfehlung. Schlägt der Aufruf
+ * fehl, kommt keine Antwort innerhalb der clientseitigen Frist zurück oder
+ * ist die Antwort ungültig, greift die regelbasierte Rückfallebene
+ * ({@link waehleGetraenk} + {@link erstelleBegruendung}) – die Karte bleibt
+ * also nie leer.
+ */
+export async function holeEmpfehlung(kontext: {
+  text: string;
+  stimmung: Stimmung | null;
+  standort: string;
+  temperatur: number | null;
+  uhrzeit: string;
+  letzteIds: string[];
+  ausser?: string | undefined;
+}): Promise<Empfehlung> {
+  const verfuegbare = getraenke.filter((g) => g.verfuegbar);
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 12_000);
+
+    let antwort: Response;
+    try {
+      antwort = await fetch("/api/empfehlung", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          text: kontext.text,
+          stimmung: kontext.stimmung,
+          standort: kontext.standort,
+          temperatur: kontext.temperatur,
+          uhrzeit: kontext.uhrzeit,
+          getraenke: verfuegbare.map((g) => ({
+            id: g.id,
+            name: g.name,
+            beschreibung: g.beschreibung,
+            koffein: g.koffein,
+          })),
+          letzteIds: kontext.letzteIds,
+        }),
+      });
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+
+    if (!antwort.ok) throw new Error("Empfehlung fehlgeschlagen");
+
+    const daten: unknown = await antwort.json();
+    const getraenkId = (daten as { getraenk_id?: unknown }).getraenk_id;
+    const begruendung = (daten as { begruendung?: unknown }).begruendung;
+    if (typeof getraenkId !== "string" || typeof begruendung !== "string") {
+      throw new Error("Ungültige Antwort");
+    }
+
+    const getraenk = verfuegbare.find((g) => g.id === getraenkId);
+    if (!getraenk) throw new Error("Unbekanntes Getränk in der Antwort");
+
+    return { getraenk, begruendung };
+  } catch {
+    const getraenk = waehleGetraenk(kontext.ausser);
+    return {
+      getraenk,
+      begruendung: erstelleBegruendung(getraenk, kontext.stimmung, kontext.text),
+    };
+  }
 }
 
 /**

@@ -20,6 +20,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Umgebungsvariablen (enthalten Geheimnisse, z.B. ANTHROPIC_API_KEY)
+.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

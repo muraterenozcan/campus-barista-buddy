@@ -10,13 +10,7 @@ import { StimmungsEingabe } from "@/components/campus-barista/StimmungsEingabe";
 import { Wetterzeile } from "@/components/campus-barista/Wetterzeile";
 import { Button } from "@/components/ui/button";
 import { useWetter } from "@/hooks/use-wetter";
-import {
-  erstelleBegruendung,
-  verfuegbarAb,
-  waehleGetraenk,
-  type Getraenk,
-  type Stimmung,
-} from "@/lib/vorschlag";
+import { holeEmpfehlung, verfuegbarAb, type Getraenk, type Stimmung } from "@/lib/vorschlag";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -51,26 +45,34 @@ function Index() {
   const [stimmung, setStimmung] = useState<Stimmung | null>(null);
   const [status, setStatus] = useState<Status>("leer");
   const [vorschlag, setVorschlag] = useState<Vorschlag | null>(null);
+  const [letzteIds, setLetzteIds] = useState<string[]>([]);
   const { temperatur, laedt: wetterLaedt, fehler: wetterFehler } = useWetter(standort);
 
   const hatEingabe = text.trim().length > 0 || stimmung !== null;
 
-  const holeVorschlag = (ausser?: string) => {
+  const holeVorschlag = async (ausser?: string) => {
     setStatus("laden");
-    window.setTimeout(() => {
-      try {
-        const getraenk = waehleGetraenk(ausser);
-        setVorschlag({
-          getraenk,
-          begruendung: erstelleBegruendung(getraenk, stimmung, text),
-          verfuegbarAbZeit: verfuegbarAb(getraenk.zubereitung_sekunden, standort),
-        });
-        setStatus("fertig");
-      } catch {
-        setVorschlag(null);
-        setStatus("fehler");
-      }
-    }, 700);
+    try {
+      const { getraenk, begruendung } = await holeEmpfehlung({
+        text,
+        stimmung,
+        standort: standorte[standort].name,
+        temperatur,
+        uhrzeit: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
+        letzteIds,
+        ausser,
+      });
+      setVorschlag({
+        getraenk,
+        begruendung,
+        verfuegbarAbZeit: verfuegbarAb(getraenk.zubereitung_sekunden, standort),
+      });
+      setLetzteIds((bisherige) => [getraenk.id, ...bisherige].slice(0, 3));
+      setStatus("fertig");
+    } catch {
+      setVorschlag(null);
+      setStatus("fehler");
+    }
   };
 
   const ort = standorte[standort];
