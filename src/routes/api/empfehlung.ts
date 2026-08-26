@@ -1,15 +1,15 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import * as z from "zod/v4";
 
-// Läuft ausschließlich serverseitig. ANTHROPIC_API_KEY kommt aus der
-// .env-Datei (siehe .env.example) und wird nie an den Browser ausgeliefert.
+// Läuft ausschließlich serverseitig. Der Schlüssel (LOVABLE_API_KEY) wird vom
+// Lovable-KI-Gateway bereitgestellt und nie an den Browser ausgeliefert.
 
 const MAX_TEXT_LAENGE = 500;
 const ANFRAGEN_PRO_MINUTE = 10;
 const ZEITFENSTER_MS = 60_000;
-const ANTHROPIC_TIMEOUT_MS = 10_000;
+const KI_TIMEOUT_MS = 15_000;
+const KI_ENDPUNKT = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const KI_MODELL = "google/gemini-2.5-flash";
 
 const anfrageZeiten = new Map<string, number[]>();
 
