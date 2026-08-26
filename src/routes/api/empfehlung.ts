@@ -62,8 +62,9 @@ export const Route = createFileRoute("/api/empfehlung")({
             return fehlerAntwort("Zu viele Anfragen, bitte kurz warten.", 429);
           }
 
-          if (!process.env["ANTHROPIC_API_KEY"]) {
-            console.error("ANTHROPIC_API_KEY ist nicht gesetzt.");
+          const apiKey = process.env["LOVABLE_API_KEY"];
+          if (!apiKey) {
+            console.error("LOVABLE_API_KEY ist nicht gesetzt.");
             return fehlerAntwort("KI-Empfehlung ist nicht konfiguriert.", 500);
           }
 
