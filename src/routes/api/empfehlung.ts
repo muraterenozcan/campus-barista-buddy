@@ -115,23 +115,64 @@ Regeln:
 Verfügbare Getränke:
 ${JSON.stringify(kandidaten, null, 2)}`;
 
-          const client = new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] });
-
-          const antwort = await client.messages.parse(
-            {
-              model: "claude-sonnet-5",
-              max_tokens: 1024,
-              system: systemPrompt,
-              messages: [{ role: "user", content: userPrompt }],
-              output_config: { format: zodOutputFormat(EmpfehlungSchema) },
+          const antwort = await fetch(KI_ENDPUNKT, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
             },
-            { timeout: ANTHROPIC_TIMEOUT_MS },
-          );
+            signal: AbortSignal.timeout(KI_TIMEOUT_MS),
+            body: JSON.stringify({
+              model: KI_MODELL,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt },
+              ],
+              response_format: {
+                type: "json_schema",
+                json_schema: {
+                  name: "empfehlung",
+                  strict: true,
+                  schema: {
+                    type: "object",
+                    properties: {
+                      getraenk_id: { type: "string", enum: kandidatenIds },
+                      begruendung: { type: "string" },
+                    },
+                    required: ["getraenk_id", "begruendung"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+            }),
+          });
 
-          const ergebnis = antwort.parsed_output;
-          if (!ergebnis) {
+          if (!antwort.ok) {
+            console.error("KI-Gateway antwortete mit", antwort.status, await antwort.text());
+            return fehlerAntwort("Empfehlung fehlgeschlagen.", 502);
+          }
+
+          const daten: unknown = await antwort.json();
+          const inhalt = (
+            daten as { choices?: Array<{ message?: { content?: unknown } }> }
+          ).choices?.[0]?.message?.content;
+          if (typeof inhalt !== "string") {
             return fehlerAntwort("Keine gültige Antwort erhalten.", 502);
           }
+
+          const geparsteAntwort = EmpfehlungSchema.safeParse(
+            ((): unknown => {
+              try {
+                return JSON.parse(inhalt);
+              } catch {
+                return null;
+              }
+            })(),
+          );
+          if (!geparsteAntwort.success) {
+            return fehlerAntwort("Keine gültige Antwort erhalten.", 502);
+          }
+          const ergebnis = geparsteAntwort.data;
 
           // Zusätzliche, explizite Prüfung gegen die Getränkeliste – unabhängig
           // von der Schema-Validierung oben.
