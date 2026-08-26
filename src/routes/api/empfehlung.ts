@@ -1,15 +1,15 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import * as z from "zod/v4";
 
-// Läuft ausschließlich serverseitig. ANTHROPIC_API_KEY kommt aus der
-// .env-Datei (siehe .env.example) und wird nie an den Browser ausgeliefert.
+// Läuft ausschließlich serverseitig. Der Schlüssel (LOVABLE_API_KEY) wird vom
+// Lovable-KI-Gateway bereitgestellt und nie an den Browser ausgeliefert.
 
 const MAX_TEXT_LAENGE = 500;
 const ANFRAGEN_PRO_MINUTE = 10;
 const ZEITFENSTER_MS = 60_000;
-const ANTHROPIC_TIMEOUT_MS = 10_000;
+const KI_TIMEOUT_MS = 15_000;
+const KI_ENDPUNKT = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const KI_MODELL = "google/gemini-2.5-flash";
 
 const anfrageZeiten = new Map<string, number[]>();
 
@@ -62,8 +62,9 @@ export const Route = createFileRoute("/api/empfehlung")({
             return fehlerAntwort("Zu viele Anfragen, bitte kurz warten.", 429);
           }
 
-          if (!process.env["ANTHROPIC_API_KEY"]) {
-            console.error("ANTHROPIC_API_KEY ist nicht gesetzt.");
+          const apiKey = process.env["LOVABLE_API_KEY"];
+          if (!apiKey) {
+            console.error("LOVABLE_API_KEY ist nicht gesetzt.");
             return fehlerAntwort("KI-Empfehlung ist nicht konfiguriert.", 500);
           }
 
@@ -114,23 +115,64 @@ Regeln:
 Verfügbare Getränke:
 ${JSON.stringify(kandidaten, null, 2)}`;
 
-          const client = new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] });
-
-          const antwort = await client.messages.parse(
-            {
-              model: "claude-sonnet-5",
-              max_tokens: 1024,
-              system: systemPrompt,
-              messages: [{ role: "user", content: userPrompt }],
-              output_config: { format: zodOutputFormat(EmpfehlungSchema) },
+          const antwort = await fetch(KI_ENDPUNKT, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
             },
-            { timeout: ANTHROPIC_TIMEOUT_MS },
-          );
+            signal: AbortSignal.timeout(KI_TIMEOUT_MS),
+            body: JSON.stringify({
+              model: KI_MODELL,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt },
+              ],
+              response_format: {
+                type: "json_schema",
+                json_schema: {
+                  name: "empfehlung",
+                  strict: true,
+                  schema: {
+                    type: "object",
+                    properties: {
+                      getraenk_id: { type: "string", enum: kandidatenIds },
+                      begruendung: { type: "string" },
+                    },
+                    required: ["getraenk_id", "begruendung"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+            }),
+          });
 
-          const ergebnis = antwort.parsed_output;
-          if (!ergebnis) {
+          if (!antwort.ok) {
+            console.error("KI-Gateway antwortete mit", antwort.status, await antwort.text());
+            return fehlerAntwort("Empfehlung fehlgeschlagen.", 502);
+          }
+
+          const daten: unknown = await antwort.json();
+          const inhalt = (
+            daten as { choices?: Array<{ message?: { content?: unknown } }> }
+          ).choices?.[0]?.message?.content;
+          if (typeof inhalt !== "string") {
             return fehlerAntwort("Keine gültige Antwort erhalten.", 502);
           }
+
+          const geparsteAntwort = EmpfehlungSchema.safeParse(
+            ((): unknown => {
+              try {
+                return JSON.parse(inhalt);
+              } catch {
+                return null;
+              }
+            })(),
+          );
+          if (!geparsteAntwort.success) {
+            return fehlerAntwort("Keine gültige Antwort erhalten.", 502);
+          }
+          const ergebnis = geparsteAntwort.data;
 
           // Zusätzliche, explizite Prüfung gegen die Getränkeliste – unabhängig
           // von der Schema-Validierung oben.
